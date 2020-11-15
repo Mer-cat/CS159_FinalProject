@@ -21,7 +21,10 @@ public class ModelTrainer {
 			while (tweetLine != null) {
 
 				String[] splitLine = tweetLine.split("\t");
-				StringReader tweetText = new StringReader(splitLine[2]);
+				
+				// Pass in lower-cased tweet text to String Reader so that in
+				// can be tokenized
+				StringReader tweetText = new StringReader(splitLine[2].toLowerCase());
 
 				PTBTokenizer<CoreLabel> ptbt = new PTBTokenizer<>(tweetText,
 						new CoreLabelTokenFactory(), "americanize=false");
