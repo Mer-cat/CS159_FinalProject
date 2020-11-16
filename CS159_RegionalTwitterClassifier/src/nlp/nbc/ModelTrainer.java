@@ -101,6 +101,10 @@ public class ModelTrainer {
 		}
 	}
 	
+	/**
+	 * Populate idLocations hashmap using the file provided
+	 * @param fileName The name of the file that contains tweet IDs and their locations
+	 */
 	public void populateIDLocations(String fileName) {
 		try {
 			BufferedReader trainingDataReader = new BufferedReader(new FileReader(fileName));	
@@ -161,8 +165,9 @@ public class ModelTrainer {
 			labelProbs.put(locationLabel, prob);
 		}
 	}
-
 	
+	// Note: should probably move to another class at some point if 
+	// this class is only for training
 	/**
 	 * Gives the theta value of a specific word and label
 	 * with lambda smoothing
