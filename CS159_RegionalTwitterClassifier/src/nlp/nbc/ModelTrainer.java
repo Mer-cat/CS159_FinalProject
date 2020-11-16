@@ -46,7 +46,7 @@ public class ModelTrainer {
 						new CoreLabelTokenFactory(), "americanize=false");
 				while (ptbt.hasNext()) {
 					CoreLabel label = ptbt.next();
-					System.out.println(label);
+					//System.out.println(label);
 					// Add to appropriate hashtable entry
 				}
 				tweetLine = trainingDataReader.readLine();
@@ -57,10 +57,30 @@ public class ModelTrainer {
 			e.printStackTrace();
 		}
 	}
+	
+	public void populateIDLocations(String fileName) {
+		try {
+			BufferedReader trainingDataReader = new BufferedReader(new FileReader(fileName));	
+			String idLoc = trainingDataReader.readLine();
 
+			while (idLoc != null) {
+				String[] splitLine = idLoc.split("\t");
+				String[] splitLoc = splitLine[1].split(" ");
+				
+				idLocations.put(splitLine[0], splitLoc[splitLoc.length-1]);
+				idLoc = trainingDataReader.readLine();
+			}
+			trainingDataReader.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public static void main(String[] args) {
 		ModelTrainer tester = new ModelTrainer("data/testFile.txt");
+		tester.populateIDLocations("data/test_locs.txt");
+		System.out.println(tester.idLocations);
 	}
 	
 }
