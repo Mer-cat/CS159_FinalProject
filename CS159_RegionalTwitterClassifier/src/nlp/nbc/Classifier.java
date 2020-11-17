@@ -1,5 +1,8 @@
 package nlp.nbc;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -22,11 +25,25 @@ public class Classifier {
 	// Lambda value for smoothing
 	private double lambda = 0;
 	
-	
-	public Classifier(ModelTrainer model, double lambda) {
+	// Problems with IL!
+	public Classifier(ModelTrainer model, double lambda, String testSetFileName) {
 		this.model = model;
 		this.lambda = lambda;
 		
+		try {
+			BufferedReader testDataReader = new BufferedReader(new FileReader(testSetFileName));	
+			String tweetLine = testDataReader.readLine();
+			
+			while (tweetLine != null) {
+				String[] splitLine = tweetLine.split("\t");
+				String testTweet = splitLine[2];
+				predictLabel(testTweet);
+				tweetLine = testDataReader.readLine();
+			}
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -122,7 +139,7 @@ public class Classifier {
 	
 	public static void main(String[] args) {
 		ModelTrainer model = new ModelTrainer("data/test_locs.txt", "data/testFile.txt");
-		Classifier classifier = new Classifier(model, 0.0);
+		Classifier classifier = new Classifier(model, 0.0, "data/testFile.txt");
 	}
 
 }
