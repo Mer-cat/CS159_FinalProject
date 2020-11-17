@@ -3,7 +3,6 @@ package nlp.nbc;
 import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
@@ -17,28 +16,24 @@ import edu.stanford.nlp.process.CoreLabelTokenFactory;
 public class ModelTrainer {
 	
 	// Maps from string of twitter user ID to location of user
-	HashMap<String, String> idLocations = new HashMap<>();
+	private HashMap<String, String> idLocations = new HashMap<>();
 	
 	// Maps from location label to word to count of how many times that word occurs in that label
 	// Note that these is not lambda-smoothed by default in order to save space
-	HashMap<String, HashMap<String, Integer>> labelWords = new HashMap<>();
+	private HashMap<String, HashMap<String, Integer>> labelWords = new HashMap<>();
 	
 	// Maps from location label to how many tweets had that location label in the training data
-	HashMap<String, Integer> labelCounts = new HashMap<>();
+	private HashMap<String, Integer> labelCounts = new HashMap<>();
 	
 	// Maps from location label to the probability that any given tweet is a certain label
-	HashMap<String, Double> labelProbs = new HashMap<>();
+	private HashMap<String, Double> labelProbs = new HashMap<>();
 	
 	// A set of all the words that appear in the tweets
-	HashSet<String> vocab = new HashSet<>();
+	private HashSet<String> vocab = new HashSet<>();
 	
 	// How many total words occur in each location label
 	// Note that this is not lambda-smoothed by default
-	HashMap<String, Integer> labelWordCounts = new HashMap<>();
-	
-	// Lambda value for smoothing
-	double lambda = 0;
-	
+	private HashMap<String, Integer> labelWordCounts = new HashMap<>();
 	
 	public ModelTrainer(String locationsFileName, String tweetsFileName) {
 		populateIDLocations(locationsFileName);
@@ -166,25 +161,24 @@ public class ModelTrainer {
 		}
 	}
 	
-	// Note: should probably move to another class at some point if 
-	// this class is only for training
-	/**
-	 * Gives the theta value of a specific word and label
-	 * with lambda smoothing
-	 * 
-	 * @param label The label whose tweets are to be looked at
-	 * @param word The word whose theta we are calculating
-	 * @return The theta value for the given word and label
-	 */
-	public double calculateTheta(String label, String word) {		
-		double wordCount = 0.0;
-		if (labelWords.get(label).get(word) != null) {
-			wordCount = labelWords.get(label).get(word) + lambda;
-		} else {
-			wordCount = lambda;
-		}
-		double totalWordsInLabel = labelWordCounts.get(label) + lambda * vocab.size();
-		return wordCount / totalWordsInLabel;
+	public HashSet<String> getVocab() {
+		return vocab;
+	}
+	
+	public HashMap<String, HashMap<String, Integer>> getLabelWords() {
+		return labelWords;
+	}
+	
+	public HashMap<String, Integer> getLabelWordCounts() {
+		return labelWordCounts;
+	}
+	
+	public HashMap<String, String> getIDLocations() {
+		return idLocations;
+	}
+	
+	public HashMap<String, Double> getLabelProbs() {
+		return labelProbs;
 	}
 	
 	public static void main(String[] args) {
