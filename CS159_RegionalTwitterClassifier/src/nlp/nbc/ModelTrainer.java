@@ -18,6 +18,9 @@ public class ModelTrainer {
 	// Maps from string of twitter user ID to location of user
 	private HashMap<String, String> idLocations = new HashMap<>();
 	
+	// All the labels that occur in the training set
+	private HashSet<String> trainingSetLabels = new HashSet<>();
+	
 	// Maps from location label to word to count of how many times that word occurs in that label
 	// Note that these is not lambda-smoothed by default in order to save space
 	private HashMap<String, HashMap<String, Integer>> labelWords = new HashMap<>();
@@ -67,6 +70,7 @@ public class ModelTrainer {
 						new CoreLabelTokenFactory(), "americanize=false");
 				
 				String location = idLocations.get(splitLine[0]);
+				trainingSetLabels.add(location);
 				
 				// Goes through each word of the tweet 
 				// and adds it to appropriate data structures
@@ -179,6 +183,10 @@ public class ModelTrainer {
 	
 	public HashMap<String, Double> getLabelProbs() {
 		return labelProbs;
+	}
+	
+	public HashSet<String> getTrainingSetLabels() {
+		return trainingSetLabels;
 	}
 	
 	public static void main(String[] args) {

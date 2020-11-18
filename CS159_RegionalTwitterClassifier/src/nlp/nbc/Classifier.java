@@ -61,7 +61,8 @@ public class Classifier {
 		} else {
 			wordCount = lambda;
 		}
-		double totalWordsInLabel = model.getLabelWordCounts().get(label) + lambda * model.getVocab().size();
+		
+		double totalWordsInLabel = model.getLabelWordCounts().get(label) + (lambda * model.getVocab().size());
 		return wordCount / totalWordsInLabel;
 	}
 	
@@ -93,13 +94,12 @@ public class Classifier {
 			
 		}
 		
-		
-			
-		double posLogProbSum = 0;
-		double negLogProbSum = 0;
 		HashMap<String, Double> logProbSums = new HashMap<>();
 		
-		for (String label : model.getIDLocations().values()) {
+		// Populatng based off labels that occur in the training set
+		// Prevents issues with trying to predict for labels
+		// That weren't in the training set
+		for (String label : model.getTrainingSetLabels()) {
 			logProbSums.put(label, 0.0);
 		}
 		
@@ -110,6 +110,9 @@ public class Classifier {
 				// And add it to the running log prob sum for that label
 				for (String label : logProbSums.keySet()) {
 					double thetaValue = calculateTheta(label, word);
+					
+					// Debugging print statement - remove before submission
+					//System.out.println("Theta value for label: " + label + " and word: " + word + ": " + thetaValue);
 					double product = wordOccurrences.get(word) * Math.log10(thetaValue);
 					logProbSums.put(label, logProbSums.get(label) + product);
 				}
@@ -121,7 +124,12 @@ public class Classifier {
 		HashMap<String, Double> finalLogProbs = new HashMap<>();
 		
 		for (String label : logProbSums.keySet()) {
-			double finalLogProb = logProbSums.get(label) + Math.log10(model.getLabelProbs().get(label));
+			double labelProb = Math.log10(model.getLabelProbs().get(label));
+			
+			// Debugging print statement - remove before submission
+			// System.out.println("Label prob:" + labelProb+  " for label: " + label);			
+
+			double finalLogProb = logProbSums.get(label) + labelProb;
 			finalLogProbs.put(label, finalLogProb);
 		}
 		
@@ -139,7 +147,7 @@ public class Classifier {
 	
 	public static void main(String[] args) {
 		ModelTrainer model = new ModelTrainer("data/test_locs.txt", "data/testFile.txt");
-		Classifier classifier = new Classifier(model, 0.0, "data/testFile.txt");
+		Classifier classifier = new Classifier(model, 1.0, "data/testFile.txt");
 	}
 
 }
