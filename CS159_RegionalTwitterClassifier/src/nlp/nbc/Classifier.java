@@ -33,14 +33,19 @@ public class Classifier {
 		try {
 			BufferedReader testDataReader = new BufferedReader(new FileReader(testSetFileName));	
 			String tweetLine = testDataReader.readLine();
-			
+
 			while (tweetLine != null) {
 				String[] splitLine = tweetLine.split("\t");
-				String testTweet = splitLine[2];
-				predictLabel(testTweet);
+				if (splitLine.length == 4) {
+					String testTweet = splitLine[2];
+					predictLabel(testTweet);
+				} else {
+					System.out.println("No prediction due to improper formatting");
+				}
 				tweetLine = testDataReader.readLine();
 			}
 		}
+		
 		catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -77,7 +82,7 @@ public class Classifier {
 		StringReader tweetText = new StringReader(tweet);
 
 		PTBTokenizer<CoreLabel> ptbt = new PTBTokenizer<>(tweetText,
-				new CoreLabelTokenFactory(), "americanize=false");
+				new CoreLabelTokenFactory(), "americanize=false,untokenizable=noneDelete");
 		
 		Hashtable<String, Double> wordOccurrences = new Hashtable<>();
 		
@@ -103,6 +108,8 @@ public class Classifier {
 			logProbSums.put(label, 0.0);
 		}
 		
+		// Note that a lmabda value > 0 MUST be used to prevent 
+		// log of 0 operations
 		for (String word : wordOccurrences.keySet()) {
 			if (model.getVocab().contains(word)) {
 				
@@ -146,8 +153,8 @@ public class Classifier {
 	}
 	
 	public static void main(String[] args) {
-		ModelTrainer model = new ModelTrainer("data/test_locs.txt", "data/testFile.txt");
-		Classifier classifier = new Classifier(model, 1.0, "data/testFile.txt");
+		ModelTrainer model = new ModelTrainer("data/training_set_users.txt", "data/training_set_tweets_2mil.txt");
+		Classifier classifier = new Classifier(model, 0.01, "data/test_set_tweets_360k.txt");
 	}
 
 }
