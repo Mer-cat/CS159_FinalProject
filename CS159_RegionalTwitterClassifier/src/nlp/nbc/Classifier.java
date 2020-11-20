@@ -33,14 +33,19 @@ public class Classifier {
 		try {
 			BufferedReader testDataReader = new BufferedReader(new FileReader(testSetFileName));	
 			String tweetLine = testDataReader.readLine();
-			
+
 			while (tweetLine != null) {
 				String[] splitLine = tweetLine.split("\t");
-				String testTweet = splitLine[2];
-				predictLabel(testTweet);
+				if (splitLine.length == 4) {
+					String testTweet = splitLine[2];
+					predictLabel(testTweet);
+				} else {
+					System.out.println("No prediction due to improper formatting");
+				}
 				tweetLine = testDataReader.readLine();
 			}
 		}
+		
 		catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -61,7 +66,8 @@ public class Classifier {
 		} else {
 			wordCount = lambda;
 		}
-		double totalWordsInLabel = model.getLabelWordCounts().get(label) + lambda * model.getVocab().size();
+		
+		double totalWordsInLabel = model.getLabelWordCounts().get(label) + (lambda * model.getVocab().size());
 		return wordCount / totalWordsInLabel;
 	}
 	
@@ -76,7 +82,7 @@ public class Classifier {
 		StringReader tweetText = new StringReader(tweet);
 
 		PTBTokenizer<CoreLabel> ptbt = new PTBTokenizer<>(tweetText,
-				new CoreLabelTokenFactory(), "americanize=false");
+				new CoreLabelTokenFactory(), "americanize=false,untokenizable=noneDelete");
 		
 		Hashtable<String, Double> wordOccurrences = new Hashtable<>();
 		
@@ -95,10 +101,15 @@ public class Classifier {
 		
 		HashMap<String, Double> logProbSums = new HashMap<>();
 		
-		for (String label : model.getIDLocations().values()) {
+		// Populatng based off labels that occur in the training set
+		// Prevents issues with trying to predict for labels
+		// That weren't in the training set
+		for (String label : model.getTrainingSetLabels()) {
 			logProbSums.put(label, 0.0);
 		}
 		
+		// Note that a lmabda value > 0 MUST be used to prevent 
+		// log of 0 operations
 		for (String word : wordOccurrences.keySet()) {
 			if (model.getVocab().contains(word)) {
 				
@@ -106,6 +117,9 @@ public class Classifier {
 				// And add it to the running log prob sum for that label
 				for (String label : logProbSums.keySet()) {
 					double thetaValue = calculateTheta(label, word);
+					
+					// Debugging print statement - remove before submission
+					//System.out.println("Theta value for label: " + label + " and word: " + word + ": " + thetaValue);
 					double product = wordOccurrences.get(word) * Math.log10(thetaValue);
 					logProbSums.put(label, logProbSums.get(label) + product);
 				}
@@ -117,7 +131,12 @@ public class Classifier {
 		HashMap<String, Double> finalLogProbs = new HashMap<>();
 		
 		for (String label : logProbSums.keySet()) {
-			double finalLogProb = logProbSums.get(label) + Math.log10(model.getLabelProbs().get(label));
+			double labelProb = Math.log10(model.getLabelProbs().get(label));
+			
+			// Debugging print statement - remove before submission
+			// System.out.println("Label prob:" + labelProb+  " for label: " + label);			
+
+			double finalLogProb = logProbSums.get(label) + labelProb;
 			finalLogProbs.put(label, finalLogProb);
 		}
 		
@@ -134,8 +153,8 @@ public class Classifier {
 	}
 	
 	public static void main(String[] args) {
-		ModelTrainer model = new ModelTrainer("data/test_locs.txt", "data/testFile.txt");
-		Classifier classifier = new Classifier(model, 0.0, "data/testFile.txt");
+		ModelTrainer model = new ModelTrainer("data/training_set_users.txt", "data/training_set_tweets_2mil.txt");
+		Classifier classifier = new Classifier(model, 0.01, "data/test_set_tweets_360k.txt");
 	}
 
 }

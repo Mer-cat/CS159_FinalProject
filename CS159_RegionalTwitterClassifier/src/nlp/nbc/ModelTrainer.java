@@ -18,6 +18,9 @@ public class ModelTrainer {
 	// Maps from string of twitter user ID to location of user
 	private HashMap<String, String> idLocations = new HashMap<>();
 	
+	// All the labels that occur in the training set
+	private HashSet<String> trainingSetLabels = new HashSet<>();
+	
 	// Maps from location label to word to count of how many times that word occurs in that label
 	// Note that these is not lambda-smoothed by default in order to save space
 	private HashMap<String, HashMap<String, Integer>> labelWords = new HashMap<>();
@@ -50,39 +53,48 @@ public class ModelTrainer {
 		try {
 			BufferedReader trainingDataReader = new BufferedReader(new FileReader(tweetsFileName));	
 			String tweetLine = trainingDataReader.readLine();
+			int lineCount = 0;
 
 			// Look at tweets line by line
 			while (tweetLine != null) {
-
+				lineCount++;
 				String[] splitLine = tweetLine.split("\t");
-				
+
 				// Stop list processing???
 				// Remove hashtags and treat the hashtag as a normal word?
-				
+
 				// Pass in lower-cased tweet text to String Reader so that in
 				// can be tokenized 
-				StringReader tweetText = new StringReader(splitLine[2].toLowerCase());
+				if (splitLine.length == 4 && splitLine[0].matches("[0-9]+") && splitLine[1].matches("[0-9]+")) {
+					StringReader tweetText = new StringReader(splitLine[2].toLowerCase());
 
-				PTBTokenizer<CoreLabel> ptbt = new PTBTokenizer<>(tweetText,
-						new CoreLabelTokenFactory(), "americanize=false");
-				
-				String location = idLocations.get(splitLine[0]);
-				
-				// Goes through each word of the tweet 
-				// and adds it to appropriate data structures
-				while (ptbt.hasNext()) {
-					CoreLabel word = ptbt.next();
+					PTBTokenizer<CoreLabel> ptbt = new PTBTokenizer<>(tweetText,
+							new CoreLabelTokenFactory(), "americanize=false,untokenizable=noneDelete");
 
-					// Add to vocab and appropriate hashtable entry
-					vocab.add(word.toString());
-					addToLabelWords(word.toString(), location);
+					String location = idLocations.get(splitLine[0]);
+					if (idLocations.get(splitLine[0]) == null) {
+						System.out.println("Null user ID on line " + lineCount + "; formatting error suspected");
+						
+					}
 					
-					// Increment total amount of words in that label
-					labelWordCounts.put(location, labelWordCounts.get(location) + 1);
+					trainingSetLabels.add(location);
+
+					// Goes through each word of the tweet 
+					// and adds it to appropriate data structures
+					while (ptbt.hasNext()) {
+						CoreLabel word = ptbt.next();
+
+						// Add to vocab and appropriate hashtable entry
+						vocab.add(word.toString());
+						addToLabelWords(word.toString(), location);
+
+						// Increment total amount of words in that label
+						labelWordCounts.put(location, labelWordCounts.get(location) + 1);
+					}
+
+					labelCounts.put(location, labelCounts.get(location) + 1);
 				}
-				
-				labelCounts.put(location, labelCounts.get(location) + 1);
-				
+
 				tweetLine = trainingDataReader.readLine();
 			}
 			
@@ -181,8 +193,12 @@ public class ModelTrainer {
 		return labelProbs;
 	}
 	
+	public HashSet<String> getTrainingSetLabels() {
+		return trainingSetLabels;
+	}
+	
 	public static void main(String[] args) {
-		ModelTrainer tester = new ModelTrainer("data/test_locs.txt", "data/testFile.txt");
-		System.out.println(tester.idLocations);
+		ModelTrainer tester = new ModelTrainer("data/training_set_users.txt", "data/training_set_tweets_1k.txt");
+		// System.out.println(tester.idLocations);
 	}
 }
