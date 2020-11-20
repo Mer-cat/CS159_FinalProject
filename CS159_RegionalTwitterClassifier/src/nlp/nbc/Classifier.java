@@ -25,7 +25,6 @@ public class Classifier {
 	// Lambda value for smoothing
 	private double lambda = 0;
 	
-	// Problems with IL!
 	public Classifier(ModelTrainer model, double lambda, String testSetFileName) {
 		this.model = model;
 		this.lambda = lambda;
@@ -101,14 +100,14 @@ public class Classifier {
 		
 		HashMap<String, Double> logProbSums = new HashMap<>();
 		
-		// Populatng based off labels that occur in the training set
+		// Populating based off labels that occur in the training set
 		// Prevents issues with trying to predict for labels
 		// That weren't in the training set
 		for (String label : model.getTrainingSetLabels()) {
 			logProbSums.put(label, 0.0);
 		}
 		
-		// Note that a lmabda value > 0 MUST be used to prevent 
+		// Note that a lambda value > 0 MUST be used to prevent 
 		// log of 0 operations
 		for (String word : wordOccurrences.keySet()) {
 			if (model.getVocab().contains(word)) {
@@ -149,6 +148,7 @@ public class Classifier {
 			}
 		}
 		
+		// Write into file instead
 		System.out.println(maxEntry.getKey() + "\t" + maxEntry.getValue());
 	}
 	

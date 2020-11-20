@@ -37,6 +37,7 @@ public class ModelTrainer {
 	// How many total words occur in each location label
 	// Note that this is not lambda-smoothed by default
 	private HashMap<String, Integer> labelWordCounts = new HashMap<>();
+
 	
 	public ModelTrainer(String locationsFileName, String tweetsFileName) {
 		populateIDLocations(locationsFileName);
@@ -74,7 +75,6 @@ public class ModelTrainer {
 					String location = idLocations.get(splitLine[0]);
 					if (idLocations.get(splitLine[0]) == null) {
 						System.out.println("Null user ID on line " + lineCount + "; formatting error suspected");
-						
 					}
 					
 					trainingSetLabels.add(location);
@@ -113,6 +113,9 @@ public class ModelTrainer {
 	 * @param fileName The name of the file that contains tweet IDs and their locations
 	 */
 	public void populateIDLocations(String fileName) {
+		int thrownOutUsersCount = 0;
+		LocationFilterHelper filterHelper = new LocationFilterHelper();
+		
 		try {
 			BufferedReader trainingDataReader = new BufferedReader(new FileReader(fileName));	
 			String idLoc = trainingDataReader.readLine();
@@ -121,9 +124,21 @@ public class ModelTrainer {
 				String[] splitLine = idLoc.split("\t");
 				
 				// If we assume all same format, we can also split on ", "
-				String[] splitLoc = splitLine[1].split(" ");
+				String[] splitLoc = splitLine[1].split(", ");
 				
-				idLocations.put(splitLine[0], splitLoc[splitLoc.length-1]);
+				String lastPortion = splitLoc[splitLoc.length-1];
+				
+				// Filters out any entries that don't have a state in two-letter format
+				if(lastPortion.matches("^[A-Z][A-Z]$")) {
+					idLocations.put(splitLine[0], lastPortion);
+				} else {
+					if (filterHelper.getStateHashMap().get(lastPortion) != null) {
+						idLocations.put(splitLine[0], filterHelper.getStateHashMap().get(lastPortion));
+					} else {
+						thrownOutUsersCount++;
+					}
+				}
+			
 				idLoc = trainingDataReader.readLine();
 			}
 			trainingDataReader.close();
@@ -131,6 +146,7 @@ public class ModelTrainer {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println("Thrown out users: " + thrownOutUsersCount);
 	}
 	
 	/**
