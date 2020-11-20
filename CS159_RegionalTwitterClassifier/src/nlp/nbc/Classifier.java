@@ -93,10 +93,6 @@ public class Classifier {
 			
 		}
 		
-		
-			
-		double posLogProbSum = 0;
-		double negLogProbSum = 0;
 		HashMap<String, Double> logProbSums = new HashMap<>();
 		
 		for (String label : model.getIDLocations().values()) {
