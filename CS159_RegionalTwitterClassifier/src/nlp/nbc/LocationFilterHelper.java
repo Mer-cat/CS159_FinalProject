@@ -131,7 +131,7 @@ public class LocationFilterHelper {
 		cities.put("Cleveland", "OH");
 		cities.put("Columbus", "OH");
 		cities.put("Tacoma", "WA");
-		cities.put("Salt Lake City", "Utah");
+		cities.put("Salt Lake City", "UT");
 		cities.put("Baltimore", "MD");
 		cities.put("Oklahoma City", "OK");	
 		cities.put("Kansas City", "MO");

@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Random;
 
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
@@ -24,10 +25,17 @@ public class Classifier {
 	
 	// Lambda value for smoothing
 	private double lambda = 0;
+	int correctCount = 0;
+	int correctMajorityCount = 0;
+	int totalPredictions = 0;
+	private String majorityState;
+	
+	
 	
 	public Classifier(ModelTrainer model, double lambda, String testSetFileName) {
 		this.model = model;
 		this.lambda = lambda;
+		majorityState = majorityState();
 		
 		try {
 			BufferedReader testDataReader = new BufferedReader(new FileReader(testSetFileName));	
@@ -35,9 +43,9 @@ public class Classifier {
 
 			while (tweetLine != null) {
 				String[] splitLine = tweetLine.split("\t");
-				if (splitLine.length == 4) {
+				if (splitLine.length == 4 && splitLine[0].matches("[0-9]+") && splitLine[1].matches("[0-9]+")) { // match to model trainer
 					String testTweet = splitLine[2];
-					predictLabel(testTweet);
+					predictLabel(testTweet, splitLine[0]); // pass in the tweet and the person ID
 				} else {
 					System.out.println("No prediction due to improper formatting");
 				}
@@ -76,10 +84,13 @@ public class Classifier {
 	 * 
 	 * @param tweet Tweet to be classified
 	 */
-	public void predictLabel(String tweet) {
+	public void predictLabel(String tweet, String personID) {
+		String realLocation = model.getIDLocations().get(personID); // get the real location of the person
+		
 		tweet.toLowerCase();
 		StringReader tweetText = new StringReader(tweet);
 
+		
 		PTBTokenizer<CoreLabel> ptbt = new PTBTokenizer<>(tweetText,
 				new CoreLabelTokenFactory(), "americanize=false,untokenizable=noneDelete");
 		
@@ -147,14 +158,66 @@ public class Classifier {
 				maxEntry = entry;
 			}
 		}
+		if(maxEntry.getKey().equals(realLocation)) {
+			correctCount ++;
+			
+		}
+		
+		if (majorityState.equals(realLocation)) {
+			correctMajorityCount ++;
+		}
+		
+		// in
+		totalPredictions ++;
+		
 		
 		// Write into file instead
 		System.out.println(maxEntry.getKey() + "\t" + maxEntry.getValue());
 	}
 	
+	public void randomPredictor(String tweet) {
+		
+		LocationFilterHelper filter = new LocationFilterHelper();
+		int statesSize = filter.getStateHashMap().size();
+		int randInt = new Random().nextInt(statesSize);
+		
+	}
+	
+	public String majorityState() {
+		Map.Entry<String, Double> maxEntry = null;
+
+		for (Map.Entry<String, Double> entry : model.getLabelProbs().entrySet()) {
+			if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+				maxEntry = entry;
+			}
+		}
+		
+		return maxEntry.getKey();
+	}
+	
+	public double majorityAccuracy() {
+		System.out.println("Correct majority label predictions count: " + this.correctMajorityCount);
+		return (double) correctMajorityCount/ (double) totalPredictions;
+	}
+	
+	public double accuracyMeasure() {
+		System.out.println("Correct predictions count: " + this.correctCount);
+		System.out.println("Total predictions: " + this.totalPredictions);
+		return (double) correctCount/(double) totalPredictions;
+	}
+	
+	public void mostPredictiveWords() {
+		
+		
+	}
+	
 	public static void main(String[] args) {
-		ModelTrainer model = new ModelTrainer("data/training_set_users.txt", "data/training_set_tweets_2mil.txt");
-		Classifier classifier = new Classifier(model, 0.01, "data/test_set_tweets_360k.txt");
+		ModelTrainer model = new ModelTrainer("data/training_set_users.txt", "data/test_set_tweets_360k.txt");
+		Classifier classifier = new Classifier(model, 0.01, "data/test_set_tweets_1k.txt");
+		System.out.println(classifier.accuracyMeasure());
+		System.out.println(classifier.majorityAccuracy());
+		System.out.print(classifier.majorityState());
+		
 	}
 
 }
