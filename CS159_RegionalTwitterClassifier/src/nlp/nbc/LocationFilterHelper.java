@@ -15,6 +15,9 @@ public class LocationFilterHelper {
 	HashMap<String, String> states;
 	HashMap<String, String> cities; 
 	
+	/**
+	 * Constructor which populates state to state code and city to state code hashmaps
+	 */
 	public LocationFilterHelper() {
 		states = new HashMap<String, String>(); 
 		cities = new HashMap<String, String>();
@@ -22,6 +25,9 @@ public class LocationFilterHelper {
 		populateCitiesHashMap();
 	}
 
+	/**
+	 * Populates state to state code hashmap
+	 */
 	public void populateStateHashMap() {
 		states.put("Alabama","AL"); 
 		states.put("Alaska","AK"); 
@@ -77,9 +83,13 @@ public class LocationFilterHelper {
 		states.put("Wyoming","WY"); 
 	}
 	
+	/**
+	 * Populate cities to state code hashmap
+	 * Includes only some of the largest/most notable cities
+	 */
 	public void populateCitiesHashMap() {
 		cities.put("San Francisco", "CA");
-		cities.put("Brooklyn", "MA");
+		cities.put("Brooklyn", "NY");
 		cities.put("Los Angeles", "CA");
 		cities.put("Chicago", "IL");
 		cities.put("New York", "NY");
@@ -99,9 +109,7 @@ public class LocationFilterHelper {
 		cities.put("Sausalito", "CA");
 		cities.put("Seattle", "WA");
 		cities.put("Dallas", "TX");
-		cities.put("Dublin", "OH");
 		cities.put("Birmingham", "AL");
-		cities.put("Fresno", "CA");
 		cities.put("Cincinnati", "OH");
 		cities.put("Austin", "TX");
 		cities.put("Boulder", "CO");
@@ -112,14 +120,12 @@ public class LocationFilterHelper {
 		cities.put("Denver", "CO");
 		cities.put("Oakland", "CA");
 		cities.put("Charlotte", "NC");
-		cities.put("Bristol", "TN");
 		cities.put("Santa Barbara", "CA");
 		cities.put("Philadelphia", "PA");
 		cities.put("Fresno", "CA");
 		cities.put("Chesapeake", "VA");
 		cities.put("Indianapolis", "IN");
 		cities.put("Fort Worth", "TX");
-		cities.put("Oxford", "MS");
 		cities.put("El Paso", "TX");
 		cities.put("Tulsa", "OK");
 		cities.put("Minneapolis", "MN");
@@ -144,33 +150,22 @@ public class LocationFilterHelper {
 		cities.put("Oklahoma City", "OK");	
 		cities.put("Kansas City", "MO");
 		cities.put("Little Rock", "AK");
-		cities.put("York", "PA");
 		cities.put("Long Beach", "CA");
 		cities.put("Saratoga", "CA");
 		cities.put("Tampa", "FL");
 		cities.put("Hollywood", "CA");
 		cities.put("West Covina", "CA");
-		cities.put("Manchester", "NH");
 		cities.put("Chattanooga", "TN");
-		cities.put("Nederland", "TX");
 		cities.put("Chapel Hill", "NC");
-		cities.put("Glasgow", "KY");
 		cities.put("Miami Beach", "FL");
 		cities.put("Arlington", "VA");
 		cities.put("Ann Arbor", "MI");
-		cities.put("Trinidad", "CA");
 		cities.put("Santa Monica", "CA");
 		cities.put("Iowa City", "IA");
-		cities.put("Belfast", "ME");
-		cities.put("Ottawa", "IL");
-		cities.put("Belgrade", "MT");
-		cities.put("Leeds", "AL");
 		cities.put("Wichita", "KS");
 		cities.put("Scranton", "PA");
-		cities.put("Cambridge", "MA");
 		cities.put("Colorado Springs", "CO");
-		cities.put("Sheffield", "AL");
-		}
+	}
 	
 	public HashMap<String, String> getStateHashMap() {
 		return states;
