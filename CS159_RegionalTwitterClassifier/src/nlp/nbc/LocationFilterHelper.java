@@ -2,6 +2,14 @@ package nlp.nbc;
 
 import java.util.HashMap;
 
+/**
+ * Class which converts full state names and some large cities to
+ * their state codes
+ * 
+ * @author Magali Ngouabou, Helen Paulini, Mercy Bickell
+ * CS159 - Final Project
+ *
+ */
 public class LocationFilterHelper {
 	
 	HashMap<String, String> states;

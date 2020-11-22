@@ -37,9 +37,10 @@ public class ModelTrainer {
 	// How many total words occur in each location label
 	// Note that this is not lambda-smoothed by default
 	private HashMap<String, Integer> labelWordCounts = new HashMap<>();
-
 	
-	public ModelTrainer(String locationsFileName, String tweetsFileName) {
+	private HashSet<String> stoplist = new HashSet<>();  // Words to filter out from the data
+
+	public ModelTrainer(String locationsFileName, String tweetsFileName, String stoplistFileName) {
 		populateIDLocations(locationsFileName);
 
 		// Pre-populate hashmaps with all locations from our data set as labels
@@ -52,6 +53,16 @@ public class ModelTrainer {
 		}
 
 		try {
+			BufferedReader stoplistReader = new BufferedReader(new FileReader(stoplistFileName));	
+			String stopWord = stoplistReader.readLine();
+
+			while (stopWord != null) {
+				stoplist.add(stopWord);
+				stopWord = stoplistReader.readLine();
+			}
+
+			stoplistReader.close();
+			
 			BufferedReader trainingDataReader = new BufferedReader(new FileReader(tweetsFileName));	
 			String tweetLine = trainingDataReader.readLine();
 			int lineCount = 0;
@@ -72,7 +83,7 @@ public class ModelTrainer {
 					PTBTokenizer<CoreLabel> ptbt = new PTBTokenizer<>(tweetText,
 							new CoreLabelTokenFactory(), "americanize=false,untokenizable=noneDelete");
 
-					// skip tweet if user is not accounted for in location data
+					// Skip tweet if user is not accounted for in location data
 					if (idLocations.get(splitLine[0]) != null) {
 						//System.out.println("Null user ID on line " + lineCount + "; formatting error suspected");
 						String location = idLocations.get(splitLine[0]);
@@ -83,18 +94,18 @@ public class ModelTrainer {
 						// and adds it to appropriate data structures
 						while (ptbt.hasNext()) {
 							CoreLabel word = ptbt.next();
+							if (!stoplist.contains(word.toString())) {
+							
+								// Add to vocab and appropriate hashtable entry
+								vocab.add(word.toString());
+								addToLabelWords(word.toString(), location);
 
-							// Add to vocab and appropriate hashtable entry
-							vocab.add(word.toString());
-							addToLabelWords(word.toString(), location);
-
-							// Increment total amount of words in that label
-							labelWordCounts.put(location, labelWordCounts.get(location) + 1);
+								// Increment total amount of words in that label
+								labelWordCounts.put(location, labelWordCounts.get(location) + 1);
+							}
 						}
 
 						labelCounts.put(location, labelCounts.get(location) + 1);
-
-
 					}
 					
 				}
@@ -230,11 +241,9 @@ public class ModelTrainer {
 	}
 
 	public static void main(String[] args) {
-		ModelTrainer tester = new ModelTrainer("data/training_set_users.txt", "data/test_set_tweets_360k.txt");
+		ModelTrainer tester = new ModelTrainer("data/training_set_users.txt", 
+				"data/test_set_tweets_360k.txt", "data/smallStoplist");
 		System.out.println(tester.trainingSetLabels);
 		System.out.println(tester.trainingSetLabels.size());
-		
-		
-		tester.findMissingState();
 	}
 }
