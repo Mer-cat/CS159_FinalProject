@@ -20,6 +20,10 @@
 *.tar.gz
 *.rar
 
+# Our files
+training_set_tweets_1mil.txt
+training_set_tweets_2mil.txt
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 /bin/
