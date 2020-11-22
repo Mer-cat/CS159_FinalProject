@@ -8,6 +8,9 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
 
 /**
+ * Learns a multinomial Naive Bayes model on Twitter data
+ * and users' locations to be able to predict the U.S. state
+ * a user is located at based on their tweet
  * 
  * @author Magali Ngouabou, Helen Paulini, Mercy Bickell
  * CS159 - Final Project
@@ -40,6 +43,14 @@ public class ModelTrainer {
 	
 	private HashSet<String> stoplist = new HashSet<>();  // Words to filter out from the data
 
+	/**
+	 * Constructor which iterates over training tweets
+	 * and trains the model
+	 * 
+	 * @param locationsFileName Name of file containing twitter user IDs and locations
+	 * @param tweetsFileName Name of file containing tweets
+	 * @param stoplistFileName Name of file containing words to exclude when processing
+	 */
 	public ModelTrainer(String locationsFileName, String tweetsFileName, String stoplistFileName) {
 		populateIDLocations(locationsFileName);
 
@@ -85,38 +96,32 @@ public class ModelTrainer {
 
 					// Skip tweet if user is not accounted for in location data
 					if (idLocations.get(splitLine[0]) != null) {
-						//System.out.println("Null user ID on line " + lineCount + "; formatting error suspected");
+
 						String location = idLocations.get(splitLine[0]);
 						trainingSetLabels.add(location);
 						
-
 						// Goes through each word of the tweet 
 						// and adds it to appropriate data structures
 						while (ptbt.hasNext()) {
 							CoreLabel word = ptbt.next();
-							if (!stoplist.contains(word.toString())) {
+							String wordAsString = word.toString();
+							if (!stoplist.contains(wordAsString) && passesFilter(wordAsString)) {
 							
 								// Add to vocab and appropriate hashtable entry
-								vocab.add(word.toString());
-								addToLabelWords(word.toString(), location);
+								vocab.add(wordAsString);
+								addToLabelWords(wordAsString, location);
 
 								// Increment total amount of words in that label
 								labelWordCounts.put(location, labelWordCounts.get(location) + 1);
 							}
 						}
-
 						labelCounts.put(location, labelCounts.get(location) + 1);
 					}
-					
 				}
-
 				tweetLine = trainingDataReader.readLine();
 			}
-
 			populateLabelProbs();
-
 			trainingDataReader.close();
-
 		}
 		catch (IOException e) {
 			e.printStackTrace();
@@ -166,7 +171,27 @@ public class ModelTrainer {
 		}
 		
 	}
+	
+	/**
+	 * Indicate whether a word passes filter or not
+	 * in order to filter out links, etc.
+	 * 
+	 * @param word Word to check
+	 * @return True if word should not be filtered out, false if it should be filtered out
+	 */
+	public boolean passesFilter(String word) {
+		if (word.matches("^http.+")) {
+			return false;
+		} else if (word.matches("www\\..+")) {
+			return false;
+		}
+		
+		return true;
+	}
 
+	/**
+	 * Helper method for finding which location was not included in training data
+	 */
 	public void findMissingState() {
 		LocationFilterHelper filterHelper = new LocationFilterHelper();
 		
@@ -176,6 +201,7 @@ public class ModelTrainer {
 			}
 		}
 	}
+	
 	/**
 	 * Populate the labelWords hashmap with the word in question
 	 * associated with the particular label and its count 
@@ -216,30 +242,54 @@ public class ModelTrainer {
 		}
 	}
 
+	/**
+	 * @return vocabulary hashset from training
+	 */
 	public HashSet<String> getVocab() {
 		return vocab;
 	}
 
+	/**
+	 * @return labelWords hashmap from training
+	 */
 	public HashMap<String, HashMap<String, Integer>> getLabelWords() {
 		return labelWords;
 	}
 
+	/**
+	 * @return labelWordCounts hashmap from training
+	 */
 	public HashMap<String, Integer> getLabelWordCounts() {
 		return labelWordCounts;
 	}
 
+	/**
+	 * @return idLocations hashmap from training which maps from
+	 * a user ID to their location as a 2-letter state code
+	 */
 	public HashMap<String, String> getIDLocations() {
 		return idLocations;
 	}
 
+	/**
+	 * @return labelProbs hashmap from training
+	 */
 	public HashMap<String, Double> getLabelProbs() {
 		return labelProbs;
 	}
 
+	/**
+	 * @return trainingSetLabels hashset from training
+	 * which is all the labels that occurred in the training
+	 */
 	public HashSet<String> getTrainingSetLabels() {
 		return trainingSetLabels;
 	}
 
+	/**
+	 * Main method for testing
+	 * @param args not used
+	 */
 	public static void main(String[] args) {
 		ModelTrainer tester = new ModelTrainer("data/training_set_users.txt", 
 				"data/test_set_tweets_360k.txt", "data/smallStoplist");
