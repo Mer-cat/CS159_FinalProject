@@ -30,13 +30,12 @@ public class Classifier {
 	
 	// Lambda value for smoothing
 	private double lambda = 0;
-	int correctCount = 0;
-	int correctMajorityCount = 0;
-	int totalPredictions = 0;
+	private int correctCount = 0;
+	private int correctMajorityCount = 0;
+	private int totalPredictions = 0;
 	private String majorityState;
 	private HashMap<String, Integer> correctCountByState = new HashMap<>();
 	private HashMap<String, Integer> totalOccurrencesByState = new HashMap<>();
-	HashMap<String, Double> logProbSums;
 	
 	/**
 	 * Constructor which initializes data and predicts the label
@@ -54,15 +53,6 @@ public class Classifier {
 		for (String label : model.getTrainingSetLabels()) {
 			correctCountByState.put(label, 0);
 			totalOccurrencesByState.put(label, 0);
-		}
-		
-		logProbSums = new HashMap<>();
-
-		// Populating based off labels that occur in the training set
-		// Prevents issues with trying to predict for labels
-		// That weren't in the training set
-		for (String label : model.getTrainingSetLabels()) {
-			logProbSums.put(label, 0.0);
 		}
 		
 		try {
@@ -165,6 +155,15 @@ public class Classifier {
 					} else {
 						wordOccurrences.put(wordAsString, wordOccurrences.get(wordAsString) + 1);
 					}
+				}
+				
+				HashMap<String, Double> logProbSums = new HashMap<>();
+				
+				// Populating based off labels that occur in the training set
+				// Prevents issues with trying to predict for labels
+				// That weren't in the training set
+				for (String label : model.getTrainingSetLabels()) {
+					logProbSums.put(label, 0.0);
 				}
 
 				// Note that a lambda value > 0 MUST be used to prevent 
@@ -322,10 +321,36 @@ public class Classifier {
 	 * 
 	 * @param label The label whose top 10 predictive features are being predicted
 	 */
-	public void top10PredictiveFeatures(String label) {
+	public void top10PredictiveFeatures(String label, boolean considerAllWords) {
 		Hashtable<String, Double> features = new Hashtable<>();
 		
-		for (String word : model.getVocab()) {
+		HashSet<String> wordsToUse;
+		
+		// Considers only words that occur in all 50 labels
+		if (!considerAllWords) {
+			wordsToUse = new HashSet<>();
+			for (String word : model.getVocab()) {
+				boolean occursInAll = true;
+				for (String state : model.getTrainingSetLabels()) {
+					if (model.getLabelWords().get(state).get(word) == null) {
+						occursInAll = false;
+						break;
+					}
+				}
+
+				if (occursInAll) {
+					wordsToUse.add(word);
+				}
+			}
+		} 
+		
+		// Considers ALL words which will heavily weight words
+		// that occurred even only once in a state but not in other states (so, rare words)
+		else {
+			wordsToUse = model.getVocab();
+		}
+
+		for (String word : wordsToUse) {
 			double labelTheta = calculateTheta(label, word);
 			double otherStatesTheta = calculateSuperTheta(label, word);
 			
@@ -367,7 +392,7 @@ public class Classifier {
 		ModelTrainer model = new ModelTrainer("data/training_set_users.txt", "data/training_set_tweets_2mil.txt",
 				"data/smallStoplist");
 		Classifier classifier = new Classifier(model, 0.01, "data/test_set_tweets_1k.txt");
-		classifier.top10PredictiveFeatures("CA");
+		classifier.top10PredictiveFeatures("TX", false);
 		System.out.println("Macro accuracy: " + classifier.macroAccuracy());
 		System.out.println("Majority accuracy: " + classifier.majorityAccuracy());
 		System.out.println("Micro accuracy: " + classifier.microAccuracy());

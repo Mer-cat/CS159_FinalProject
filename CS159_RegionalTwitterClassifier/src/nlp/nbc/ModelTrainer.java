@@ -41,7 +41,8 @@ public class ModelTrainer {
 	// Note that this is not lambda-smoothed by default
 	private HashMap<String, Integer> labelWordCounts = new HashMap<>();
 	
-	private HashSet<String> stoplist = new HashSet<>();  // Words to filter out from the data
+	// Words to filter out from the data
+	private HashSet<String> stoplist = new HashSet<>();
 
 	/**
 	 * Constructor which iterates over training tweets
@@ -82,9 +83,6 @@ public class ModelTrainer {
 			while (tweetLine != null) {
 				lineCount++;
 				String[] splitLine = tweetLine.split("\t");
-
-				// Stop list processing???
-				// Remove hashtags and treat the hashtag as a normal word?
 
 				// Pass in lower-cased tweet text to String Reader so that in
 				// can be tokenized 
@@ -165,6 +163,7 @@ public class ModelTrainer {
 				idLoc = trainingDataReader.readLine();
 			}
 			trainingDataReader.close();
+			System.out.println("Thrown out users: " + thrownOutUsersCount);
 		}
 		catch (IOException e) {
 			e.printStackTrace();
