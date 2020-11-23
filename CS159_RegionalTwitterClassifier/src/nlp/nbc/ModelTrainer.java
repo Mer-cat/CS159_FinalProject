@@ -150,14 +150,13 @@ public class ModelTrainer {
 				if(lastPortion.matches("^[A-Z][A-Z]$")) {
 					idLocations.put(splitLine[0], lastPortion);
 				} else {
-
 					if (filterHelper.getStateHashMap().get(lastPortion) != null) {
 						idLocations.put(splitLine[0], filterHelper.getStateHashMap().get(lastPortion));
-					} else if (filterHelper.getCitiesHashMap().get(lastPortion) != null){ 
-
+					} else if (filterHelper.getCitiesHashMap().get(lastPortion) != null) { 
 						idLocations.put(splitLine[0], filterHelper.getCitiesHashMap().get(lastPortion));
-
-					} 
+					} else {
+						thrownOutUsersCount++;
+					}
 				}
 
 				idLoc = trainingDataReader.readLine();

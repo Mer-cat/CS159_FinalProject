@@ -389,13 +389,13 @@ public class Classifier {
 	 * the lambda value, and then the file containing the test set of tweets
 	 */
 	public static void main(String[] args) {
-		ModelTrainer model = new ModelTrainer("data/training_set_users.txt", "data/training_set_tweets_2mil.txt",
+		ModelTrainer model = new ModelTrainer("data/training_set_users.txt", "data/training_set_tweets_3mil.txt",
 				"data/smallStoplist");
-		Classifier classifier = new Classifier(model, 0.01, "data/test_set_tweets_1k.txt");
-		classifier.top10PredictiveFeatures("TX", false);
+		Classifier classifier = new Classifier(model, 0.01, "data/test_set_tweets_360k.txt");
+		classifier.top10PredictiveFeatures("CA", false);
 		System.out.println("Macro accuracy: " + classifier.macroAccuracy());
 		System.out.println("Majority accuracy: " + classifier.majorityAccuracy());
 		System.out.println("Micro accuracy: " + classifier.microAccuracy());
-//		System.out.print(classifier.majorityState());
+		System.out.print(classifier.majorityState());
 	}
 }
